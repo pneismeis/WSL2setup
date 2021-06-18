@@ -49,60 +49,7 @@ function Get-Kernel-Updated () {
 
 $pkgs = (Get-AppxPackage).Name
 
-function Get-WSLlist {
-    $wslinstalls = New-Object Collections.Generic.List[String]
-    $(wsl -l) | ForEach-Object { if ($_.Length -gt 1){ $wslinstalls.Add($_) } }
-    $wslinstalls = $wslinstalls | Where-Object { $_ -ne 'Windows Subsystem for Linux Distributions:' }
-    return $wslinstalls
-}
-function Get-WSLExistance ($distro) {
-    # Check for the existence of a distro
-    # return Installed as Bool
-    $wslImport = $false
-    if (($distro.AppxName).Length -eq 0){ $wslImport = $true }
-    $installed = $false
-    if ( $wslImport -eq $false ){
-        if ($pkgs -match $distro.AppxName) {
-            $installed = $true
-        }
-    } else {
-        if (Get-WSLlist -contains ($distro.Name).Replace("-", " ")){
-            $installed = $true
-        }
-    }
-    return $installed
-}
 
-function Get-StoreDownloadLink ($distro) {
-    # Uses $distro.StoreLink to get $distro.URI
-    # Required when URI is not hard-coded
-    #### Thanks to MattiasC85 for this excelent method of getting Microsoft Store download URIs ####
-    # Source: https://github.com/MattiasC85/Scripts/blob/a1163b97875ed075927438505808622614a9961f/OSD/Download-AppxFromStore.ps1
-    $wchttp=[System.Net.WebClient]::new()
-    $URI = "https://store.rg-adguard.net/api/GetFiles"
-    $myParameters = "type=url&url=$($distro.StoreLink)"
-    $wchttp.Headers[[System.Net.HttpRequestHeader]::ContentType]="application/x-www-form-urlencoded"
-    $HtmlResult = $wchttp.UploadString($URI, $myParameters)
-    $Start=$HtmlResult.IndexOf("<p>The links were successfully received from the Microsoft Store server.</p>")
-    if ($Start -eq -1) {
-        write-host "Could not get Microsoft Store download URI, please check the StoreURL."
-        exit
-    }
-    $TableEnd=($HtmlResult.LastIndexOf("</table>")+8)
-    $SemiCleaned=$HtmlResult.Substring($start,$TableEnd-$start)
-    $newHtml=New-Object -ComObject "HTMLFile"
-    $src = [System.Text.Encoding]::Unicode.GetBytes($SemiCleaned)
-    $newHtml.write($src)
-    $ToDownload=$newHtml.getElementsByTagName("a") | Select-Object textContent, href
-    $apxLinks = @()
-    $ToDownload | Foreach-Object {
-        if ($_.textContent -match '.appxbundle') {
-            $apxLinks = $_
-        }
-    }
-    $distro.URI = $apxLinks.href
-    return $distro
-}
 
 function Check-Sideload (){
     # Return $true if sideloading is enabled
