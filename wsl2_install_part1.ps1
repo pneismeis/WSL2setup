@@ -24,6 +24,18 @@ if ((Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform).Sta
     Write-Host(" ...Virtual Machine Platform already installed.")
 }
 
+function Update-Kernel () {
+    Write-Host(" ...Downloading WSL2 Kernel Update.")
+    $kernelURI = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi'
+    $kernelUpdate = ((Get-Location).Path) + '\wsl_update_x64.msi'
+    (New-Object System.Net.WebClient).DownloadFile($kernelURI, $kernelUpdate)
+    Write-Host(" ...Installing WSL2 Kernel Update.")
+    msiexec /i $kernelUpdate /qn
+    Start-Sleep -Seconds 5
+    Write-Host(" ...Cleaning up Kernel Update installer.")
+    Remove-Item -Path $kernelUpdate
+}
+
 function Get-Kernel-Updated () {
     # Check for Kernel Update Package
     Write-Host("Checking for Windows Subsystem for Linux Update...")
@@ -136,6 +148,50 @@ function Enable-Sideload () {
             New-ItemProperty -Path $keyPath -Name $_ -Value "1" -PropertyType DWORD -Force | Out-Null
         } else {
             Set-ItemProperty -Path $keyPath -Name $_ -Value "1" -PropertyType DWORD -Force | Out-Null
+        }
+    }
+}
+
+
+if ($rebootRequired) {
+    shutdown /t 120 /r /c "Reboot required to finish installing WSL2"
+    $cancelReboot = Read-Host 'Cancel reboot for now (you still need to reboot and rerun to finish installing WSL2) [y/N]'
+    if ($cancelReboot.Length -ne 0){
+        if ($cancelReboot.Substring(0,1).ToLower() -eq 'y'){
+            shutdown /a
+        }
+    }
+} else {
+    if (!(Get-Kernel-Updated)) {
+        Write-Host(" ...WSL kernel update not installed.")
+        Update-Kernel
+    } else {
+        Write-Host(" ...WSL update already installed.")
+    }
+    Write-Host("Setting WSL2 as the default...")
+    wsl --set-default-version 2
+    $distro = Select-Distro
+    Install-Distro($distro)
+    if ($distro.AppxName.Length -gt 1) {
+        if ($distro.sideloadreqd){
+            if (Check-Sideload){
+                Start-Process $distro.winpe
+            }
+        } else {
+            Start-Process $distro.winpe
+        }
+    } else {
+        $wslselect = ""
+        Get-WSLlist | ForEach-Object {
+            if ($_ -match $distro.Name){
+                $wslselect = $_
+            }
+        }
+        if ($wslselect -ne "") {
+            wsl -d $wslselect
+        } else {
+            Write-Host("Run 'wsl -l' to list WSL Distributions")
+            Write-Host("Run 'wsl -d <distroname>' to start WSL Distro")
         }
     }
 }
