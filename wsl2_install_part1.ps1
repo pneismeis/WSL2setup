@@ -170,28 +170,6 @@ if ($rebootRequired) {
     }
     Write-Host("Setting WSL2 as the default...")
     wsl --set-default-version 2
-    $distro = Select-Distro
-    Install-Distro($distro)
-    if ($distro.AppxName.Length -gt 1) {
-        if ($distro.sideloadreqd){
-            if (Check-Sideload){
-                Start-Process $distro.winpe
-            }
-        } else {
-            Start-Process $distro.winpe
-        }
-    } else {
-        $wslselect = ""
-        Get-WSLlist | ForEach-Object {
-            if ($_ -match $distro.Name){
-                $wslselect = $_
-            }
-        }
-        if ($wslselect -ne "") {
-            wsl -d $wslselect
-        } else {
-            Write-Host("Run 'wsl -l' to list WSL Distributions")
-            Write-Host("Run 'wsl -d <distroname>' to start WSL Distro")
-        }
+  
     }
-}
+
