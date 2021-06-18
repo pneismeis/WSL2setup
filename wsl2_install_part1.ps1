@@ -161,5 +161,10 @@ if ($rebootRequired) {
             shutdown /a
         }
     }
-} 
-
+} else {
+    if (!(Get-Kernel-Updated)) {
+        Write-Host(" ...WSL kernel update not installed.")
+        Update-Kernel
+    } else {
+        Write-Host(" ...WSL update already installed.")
+    }
