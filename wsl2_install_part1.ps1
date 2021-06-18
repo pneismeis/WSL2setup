@@ -168,8 +168,5 @@ if ($rebootRequired) {
     } else {
         Write-Host(" ...WSL update already installed.")
     }
-    Write-Host("Setting WSL2 as the default...")
-    wsl --set-default-version 2
-  
-    }
+ 
 
