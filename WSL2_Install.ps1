@@ -244,18 +244,14 @@ function Select-Distro () {
         # }
     )
     $distrolist | ForEach-Object { $_.installed = Get-WSLExistance($_) }
-    Write-Host("+------------------------------------------------+")
-    Write-Host("| Choose your Distro                             |")
-    Write-Host("| Ubuntu 18.04 is recommended for Docker on WSL2 |")
-    Write-Host("+------------------------------------------------+")
     For ($i = 0; $i -le ($distrolist.Length - 1); $i++) {
         $installedTxt = ""
         if (($distrolist.installed)[$i]) {
             $installedTxt = "(Installed)"
         }
-        Write-Host(($i + 1).ToString() + " " + ($distrolist.Name)[$i] + " " + $installedTxt)
+  
     }
-    [Int]$distroChoice = Read-Host '>'
+    [Int]$distroChoice = 1
     $choiceNum = 0
     if (($distroChoice.Length -ne 0) -and ($distroChoice -match '^\d+$')) {
         if (($distroChoice -gt 0) -and ($distroChoice -le $distrolist.Length)) {
@@ -263,8 +259,9 @@ function Select-Distro () {
         }
     }
     $choice = $distrolist[$choiceNum]
-    return 1
+    return $choice
 }
+
 
 function Install-Distro ($distro) {
     function Import-WSL ($distro) {
