@@ -168,3 +168,4 @@ if ($rebootRequired) {
     } else {
         Write-Host(" ...WSL update already installed.")
     }
+    }
