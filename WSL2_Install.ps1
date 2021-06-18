@@ -263,7 +263,7 @@ function Select-Distro () {
         }
     }
     $choice = $distrolist[$choiceNum]
-    return $choice
+    return 1
 }
 
 function Install-Distro ($distro) {
