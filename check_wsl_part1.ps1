@@ -17,3 +17,6 @@ function Get-Kernel-Updated () {
         Write-Host(" ...WSL update already installed.")
     }
     
+
+Write-Host($STDOUT)
+echo $STDOUT
