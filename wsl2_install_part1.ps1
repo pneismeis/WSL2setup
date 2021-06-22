@@ -103,7 +103,8 @@ function Enable-Sideload () {
 if ($rebootRequired) {
     shutdown /t 120 /r /c "Reboot required to finish installing WSL2"
     }
-} else {
+ else 
+ {
     if (!(Get-Kernel-Updated)) {
         Write-Host(" ...WSL kernel update not installed.")
         Update-Kernel
